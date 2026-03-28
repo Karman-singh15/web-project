@@ -1,0 +1,129 @@
+.platform-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.2rem 1.5rem;
+    margin-bottom: 1rem;
+    transition: var(--transition-normal);
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+}
+
+.platform-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: var(--shadow-lg);
+}
+
+.best-deal {
+    border-color: var(--accent-primary);
+    background: linear-gradient(to right, rgba(99, 102, 241, 0.1), var(--bg-glass));
+}
+
+.best-deal::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: var(--accent-gradient);
+}
+
+.best-deal-badge {
+    position: absolute;
+    top: 0;
+    right: 1.5rem;
+    background: var(--accent-gradient);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 0.2rem 0.8rem;
+    border-bottom-left-radius: var(--radius-sm);
+    border-bottom-right-radius: var(--radius-sm);
+    box-shadow: 0 2px 10px rgba(99, 102, 241, 0.5);
+}
+
+.platform-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.platform-logo-placeholder {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    border: 1px solid var(--border-glass);
+}
+
+.platform-name {
+    font-size: 1.1rem;
+    margin-bottom: 0.2rem;
+}
+
+.delivery-time {
+    font-size: 0.85rem;
+    color: var(--warning);
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-weight: 500;
+}
+
+.price-section {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.price-details {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.current-price {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: var(--success);
+}
+
+.original-price {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    text-decoration: line-through;
+}
+
+.buy-btn {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-glass);
+    color: var(--text-primary);
+    padding: 0.6rem 1.2rem;
+    border-radius: var(--radius-lg);
+    font-family: inherit;
+    font-size: 0.9rem;
+}
+
+.buy-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--text-secondary);
+}
+
+.best-deal .buy-btn {
+    background: var(--accent-primary);
+    border-color: transparent;
+}
+
+.best-deal .buy-btn:hover {
+    background: var(--accent-secondary);
+    box-shadow: var(--shadow-glow);
+}
