@@ -1,0 +1,92 @@
+.price-chart {
+  margin-bottom: 2rem;
+  padding: 1.5rem 1.75rem;
+}
+
+.chart-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 1.25rem;
+}
+
+.chart-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.chart-row {
+  display: grid;
+  grid-template-columns: 140px 1fr 64px;
+  align-items: center;
+  gap: 1rem;
+}
+
+.chart-row-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.chart-platform {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.chart-cheapest-tag {
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: var(--success);
+  background: rgba(16, 185, 129, 0.15);
+  border-radius: var(--radius-sm);
+  padding: 0.15rem 0.5rem;
+  text-transform: uppercase;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.2);
+}
+
+.chart-bar-track {
+  height: 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
+}
+
+.chart-bar-fill {
+  height: 100%;
+  border-radius: var(--radius-full);
+  background: var(--bar-color, var(--accent-primary));
+  opacity: 0.6;
+  transition: width 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  animation: growBar 0.9s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+
+.chart-bar-fill.cheapest {
+  opacity: 1;
+  box-shadow: 0 0 15px color-mix(in srgb, var(--bar-color) 60%, transparent);
+}
+
+@keyframes growBar {
+  from { width: 0 !important; }
+}
+
+.chart-price {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.chart-note {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  margin-top: 1.25rem;
+  text-align: right;
+  font-weight: 500;
+}

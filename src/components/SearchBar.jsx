@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import './SearchBar.css';
 import { fetchSuggestions } from '../services/api';
 
-const SearchBar = ({ onSearch }) => {
-    const [query, setQuery] = useState('');
+const SearchBar = ({ onSearch, initialQuery = '' }) => {
+    const [query, setQuery] = useState(initialQuery);
     const [isFocused, setIsFocused] = useState(false);
     const [suggestions, setSuggestions] = useState(['Milk', 'Eggs', 'Bread', 'Bananas', 'Coffee']);
     const [showSuggestions, setShowSuggestions] = useState(false);

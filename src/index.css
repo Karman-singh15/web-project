@@ -1,46 +1,47 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-  /* Color Palette - Premium Dark Mode */
-  --bg-primary: #0a0a0c;
-  --bg-secondary: #141419;
-  --bg-glass: rgba(20, 20, 25, 0.6);
-  --border-glass: rgba(255, 255, 255, 0.08);
-  --border-highlight: rgba(99, 102, 241, 0.3);
-
-  --text-primary: #ffffff;
-  --text-secondary: #a1a1aa;
-  --text-muted: #71717a;
+  /* Ultra Modern High-Contrast Light Mode */
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8fafc;
+  --bg-glass: rgba(255, 255, 255, 0.65);
+  --border-glass: rgba(0, 0, 0, 0.06);
+  --border-glass-strong: rgba(0, 0, 0, 0.12);
   
-  --accent-primary: #6366f1;
-  --accent-secondary: #8b5cf6;
-  --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
-  --accent-glow: rgba(99, 102, 241, 0.25);
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #94a3b8;
+  
+  --accent-primary: #000000;
+  --accent-secondary: #3b82f6;
+  --accent-gradient: linear-gradient(135deg, #0f172a 0%, #334155 100%);
+  --accent-glow: rgba(0, 0, 0, 0.1);
   
   --success: #10b981;
   --warning: #f59e0b;
   --danger: #ef4444;
 
   /* Typography */
-  --font-main: 'Inter', system-ui, sans-serif;
+  --font-main: 'Plus Jakarta Sans', system-ui, sans-serif;
   
-  /* Shadows & Effects */
-  --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
-  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-  --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
-  --shadow-glow: 0 0 20px var(--accent-glow);
+  /* Shadows & Effects (Clean Minimal Shadows) */
+  --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.05);
+  --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+  --shadow-glow: 0 0 24px var(--accent-glow);
+  --glass-highlight: inset 0 1px 1px rgba(255, 255, 255, 0.8), inset 0 0 1px rgba(255, 255, 255, 0.5);
   
   /* Border Radius */
   --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 24px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
   --radius-full: 9999px;
 
   /* Transitions */
-  --transition-fast: 0.15s ease;
-  --transition-normal: 0.3s ease;
-  --transition-slow: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-normal: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-spring: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 * {
@@ -51,23 +52,25 @@
 
 body {
   font-family: var(--font-main);
-  background-color: var(--bg-primary);
+  background-color: var(--bg-secondary);
   color: var(--text-primary);
   line-height: 1.6;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background-image: 
-    radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.1), transparent 30%),
-    radial-gradient(circle at 85% 30%, rgba(139, 92, 246, 0.1), transparent 30%);
+    radial-gradient(circle at 15% 10%, rgba(59, 130, 246, 0.06), transparent 40%),
+    radial-gradient(circle at 85% 20%, rgba(236, 72, 153, 0.06), transparent 40%),
+    radial-gradient(circle at 50% 80%, rgba(16, 185, 129, 0.04), transparent 40%);
   background-attachment: fixed;
 }
 
 /* Typography base */
 h1, h2, h3, h4, h5, h6 {
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.04em;
+  color: var(--text-primary);
 }
 
 /* Utilities */
@@ -80,19 +83,30 @@ h1, h2, h3, h4, h5, h6 {
 
 .glass-panel {
   background: var(--bg-glass);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
   border: 1px solid var(--border-glass);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-md), var(--glass-highlight);
+  transition: var(--transition-normal);
+}
+
+.glass-panel:hover {
+  border-color: var(--border-glass-strong);
+  background: rgba(255, 255, 255, 0.9);
 }
 
 /* Animations Core */
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
 .animate-fade-in {
-  animation: fadeIn var(--transition-normal) forwards;
+  animation: fadeIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Universal button active scale */
+button:active, a.buy-btn:active {
+  transform: scale(0.96) !important;
 }

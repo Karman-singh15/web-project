@@ -1,199 +1,134 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { chromium } from 'playwright';
-import fs from 'fs';
-import path from 'path';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const API_KEY = process.env.QUICKCOMMERCE_API_KEY;
+const LAT = process.env.DELIVERY_LAT || '12.9021';
+const LON = process.env.DELIVERY_LON || '77.6639';
+const PINCODE = process.env.DELIVERY_PINCODE || '560103';
+const BASE_URL = 'https://api.quickcommerceapi.com';
 
 app.use(cors());
 app.use(express.json());
 
-// Helper to parse Netscape cookie file
-function parseNetscapeCookies(filePath) {
-    try {
-        if (!fs.existsSync(filePath)) {
-            console.warn(`Cookie file not found at ${filePath}`);
-            return [];
-        }
-        const content = fs.readFileSync(filePath, 'utf8');
-        const lines = content.split('\n');
-        const cookies = [];
+const PLATFORMS = ['BlinkIt', 'Zepto', 'Swiggy'];
 
-        for (const line of lines) {
-            if (!line || line.startsWith('#') || line.trim() === '') continue;
+const PLATFORM_ID_MAP = {
+  BlinkIt: 'blinkit',
+  Zepto: 'zepto',
+  Swiggy: 'swiggy',
+};
 
-            const parts = line.split('\t');
-            if (parts.length < 7) continue;
-
-            const [domain, flag, pathValue, secure, expiration, name, value] = parts;
-            
-            // Include blinkit.com and grofers.com
-            if (domain.includes('blinkit.com') || domain.includes('grofers.com')) {
-                cookies.push({
-                    name: name.trim(),
-                    value: value.trim(),
-                    domain: domain.startsWith('.') ? domain : `.${domain}`,
-                    path: pathValue || '/',
-                    expires: parseInt(expiration, 10) || -1,
-                    httpOnly: false,
-                    secure: secure === 'TRUE',
-                    sameSite: 'Lax'
-                });
-            }
-        }
-        return cookies;
-    } catch (error) {
-        console.error('Error parsing cookies:', error.message);
-        return [];
+// ── Fetch ETA for all platforms ───────────────────────────────────────────────
+async function fetchGroupETA() {
+  try {
+    const url = `${BASE_URL}/v1/groupeta?lat=${LAT}&lon=${LON}&pincode=${PINCODE}&platforms=${PLATFORMS.join(',')}`;
+    const res = await fetch(url, { headers: { 'X-API-Key': API_KEY } });
+    if (!res.ok) return {};
+    const json = await res.json();
+    const etaMap = {};
+    for (const r of json?.data?.results || []) {
+      etaMap[r.platform] = r.eta; // e.g. "14 mins"
     }
+    return etaMap;
+  } catch {
+    return {};
+  }
 }
 
-async function scrapeBlinkitPrice(query) {
-    let browser;
-    try {
-        browser = await chromium.launch({ headless: true });
-        const context = await browser.newContext({
-            userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-            viewport: { width: 1280, height: 800 }
-        });
-        
-        // Load cookies from cookies.txt (preferred) or blinkit.txt
-        const cookiePath = fs.existsSync(path.join(process.cwd(), 'cookies.txt')) 
-            ? path.join(process.cwd(), 'cookies.txt')
-            : path.join(process.cwd(), 'blinkit.txt');
-            
-        const cookies = parseNetscapeCookies(cookiePath);
-        if (cookies.length > 0) {
-            await context.addCookies(cookies);
-            console.log(`Successfully loaded ${cookies.length} cookies from ${path.basename(cookiePath)}`);
-        }
-
-        const page = await context.newPage();
-        const url = `https://blinkit.com/s/?q=${encodeURIComponent(query)}`;
-        console.log(`Navigating to ${url}`);
-        
-        await page.goto(url, { waitUntil: 'load', timeout: 60000 });
-
-        // Wait for the price element
-        const priceSelector = '.tw-text-200.tw-font-semibold';
-        console.log(`Waiting for selector: ${priceSelector}`);
-        
-        try {
-            await page.waitForSelector(priceSelector, { timeout: 30000 });
-        } catch (e) {
-            console.warn(`Timeout waiting for ${priceSelector}, taking screenshot and trying fallback...`);
-            await page.screenshot({ path: '/tmp/blinkit_error.png' });
-            // Check if there are any results or if we are blocked
-            const html = await page.content();
-            if (html.includes('Access Denied') || html.includes('Detection')) {
-                throw new Error('Blocked by anti-bot measures');
-            }
-            throw e;
-        }
-
-        const firstPrice = await page.$eval(priceSelector, el => el.innerText);
-        
-        // Try to get product name
-        const productName = await page.$eval('div[data-pf="reset"] h3, .tw-text-400', el => el.innerText).catch(() => query);
-
-        const numericPrice = parseInt(firstPrice.replace(/[^\d]/g, ''), 10);
-        console.log(`Found price: ₹${numericPrice} for ${productName}`);
-
-        await browser.close();
-        return { price: numericPrice, name: productName };
-    } catch (error) {
-        console.error('Scraping error:', error.message);
-        if (browser) await browser.close();
-        return null;
-    }
-}
-
+// ── Search endpoint ───────────────────────────────────────────────────────────
 app.get('/api/search', async (req, res) => {
-    const query = req.query.query;
-    if (!query) {
-        return res.status(400).json({ error: 'Search query is required' });
-    }
+  const query = req.query.query;
+  if (!query) return res.status(400).json({ error: 'Search query is required' });
 
-    try {
-        console.log(`Search request for: ${query}`);
-        const scrapedData = await scrapeBlinkitPrice(query);
-        
-        let basePrice = 100;
-        let foodName = query;
+  console.log(`\n=== Search: "${query}" ===`);
 
-        if (scrapedData) {
-            basePrice = scrapedData.price;
-            foodName = scrapedData.name;
-        } else {
-            console.warn("Scraping failed, using fallback logic");
-            let charSum = 0;
-            for(let i=0; i<query.length; i++) charSum += query.charCodeAt(i);
-            basePrice = 50 + (charSum % 300);
-        }
+  // Run group search + group ETA in parallel
+  const searchUrl = `${BASE_URL}/v1/groupsearch?q=${encodeURIComponent(query)}&lat=${LAT}&lon=${LON}&pincode=${PINCODE}&platforms=${PLATFORMS.join(',')}`;
 
-        const MOCK_PLATFORMS = [
-            { id: 'amazon_fresh', name: 'Amazon Fresh', deliveryTimeBase: 120 },
-            { id: 'blinkit', name: 'Blinkit', deliveryTimeBase: 11 },
-            { id: 'zepto', name: 'Zepto', deliveryTimeBase: 180 },
-        ];
+  const [searchRes, etaMap] = await Promise.all([
+    fetch(searchUrl, { headers: { 'X-API-Key': API_KEY } }).then(r => r.json()),
+    fetchGroupETA(),
+  ]);
 
-        let results = MOCK_PLATFORMS.map(platform => {
-            if (platform.id === 'blinkit' && scrapedData) {
-                return {
-                    id: platform.id,
-                    platform: platform.name,
-                    price: basePrice,
-                    deliveryTime: 11,
-                    isBestDeal: false,
-                };
-            }
+  if (searchRes.status !== 'success') {
+    console.error('API error:', searchRes);
+    return res.status(502).json({ error: 'Failed to fetch prices from QuickCommerce API' });
+  }
 
-            const pseudoRandom = Math.sin(basePrice * platform.id.length) * 0.15;
-            const platformPrice = Math.round(basePrice * (1 + pseudoRandom));
-            
-            return {
-                id: platform.id,
-                platform: platform.name,
-                price: platformPrice,
-                deliveryTime: platform.deliveryTimeBase,
-                isBestDeal: false,
-            };
-        });
+  const platformResults = searchRes.data?.results || {};
+  const results = [];
 
-        if (results.length > 0) {
-            results.sort((a, b) => a.price - b.price);
-            results[0].isBestDeal = true;
-        }
+  for (const platformName of PLATFORMS) {
+    const products = platformResults[platformName] || [];
+    if (products.length === 0) continue;
 
-        res.json({ query: foodName, results: results });
+    const top = products[0]; // best match
+    const etaString = top?.platform?.sla || etaMap[platformName] || '—';
+    const deliveryMins = parseInt(etaString) || 60;
 
-    } catch (error) {
-        console.error('Error in search endpoint:', error.message);
-        res.status(500).json({ error: 'Internal server error while searching' });
-    }
+    results.push({
+      id: PLATFORM_ID_MAP[platformName] || platformName.toLowerCase(),
+      platform: platformName === 'Swiggy' ? 'Swiggy Instamart' : platformName,
+      price: top.offer_price ?? top.mrp ?? 0,
+      mrp: top.mrp ?? null,
+      deliveryTime: deliveryMins,
+      deliverySLA: etaString,
+      isBestDeal: false,
+      dataSource: 'live',
+      productName: top.name,
+      brand: top.brand || null,
+      quantity: top.quantity || null,
+      image: top.images?.[0] || null,
+      rating: top.rating || null,
+      ratingCount: top.rating_count || null,
+      deeplink: top.deeplink || null,
+      available: top.available !== false,
+    });
+  }
+
+  if (results.length === 0) {
+    return res.status(404).json({ error: 'No products found' });
+  }
+
+  // Sort by price, mark best deal
+  results.sort((a, b) => a.price - b.price);
+  results[0].isBestDeal = true;
+
+  // Use the matched product name from the cheapest result as the display query
+  const displayName = results[0].productName || query;
+
+  console.log(`Found ${results.length} platforms. Credits remaining: ${searchRes.credits_remaining}`);
+  res.json({ query: displayName, results });
 });
 
+// ── Suggestions endpoint ──────────────────────────────────────────────────────
 app.get('/api/suggestions', async (req, res) => {
-    const query = req.query.query;
-    if (!query || query.length < 2) {
-        return res.json({ suggestions: [] });
-    }
+  const query = req.query.query;
+  if (!query || query.length < 2) return res.json({ suggestions: [] });
 
-    const suggestions = [
-        query.toLowerCase(),
-        `${query.toLowerCase()} fresh`,
-        `${query.toLowerCase()} pack`,
-        `${query.toLowerCase()} 500g`,
-        `${query.toLowerCase()} organic`
-    ];
-    res.json({ suggestions });
+  const POPULAR = [
+    'Milk', 'Eggs', 'Bread', 'Bananas', 'Coffee', 'Tea',
+    'Onions', 'Tomatoes', 'Potatoes', 'Rice', 'Atta', 'Dal',
+    'Cooking Oil', 'Butter', 'Paneer', 'Chicken', 'Fish', 'Curd',
+    'Lemon', 'Spinach', 'Biscuits', 'Noodles', 'Soap', 'Shampoo',
+  ];
+
+  const q = query.toLowerCase();
+  const matched = POPULAR.filter(p => p.toLowerCase().includes(q));
+  const suggestions = matched.length > 0
+    ? matched.slice(0, 6)
+    : [`${query} fresh`, `${query} pack`, `${query} 500g`, `${query} organic`];
+
+  res.json({ suggestions });
 });
 
 app.listen(PORT, () => {
-    console.log(`Backend server running on http://localhost:${PORT}`);
+  console.log(`Backend running on http://localhost:${PORT}`);
+  console.log(`Using location: ${LAT}, ${LON}`);
+  console.log(`Platforms: ${PLATFORMS.join(', ')}`);
 });
