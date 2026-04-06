@@ -15,12 +15,14 @@ const BASE_URL = 'https://api.quickcommerceapi.com';
 app.use(cors());
 app.use(express.json());
 
-const PLATFORMS = ['BlinkIt', 'Zepto', 'Swiggy'];
+const PLATFORMS = ['BlinkIt', 'Zepto', 'Swiggy', 'BigBasket', 'JioMart'];
 
 const PLATFORM_ID_MAP = {
   BlinkIt: 'blinkit',
   Zepto: 'zepto',
   Swiggy: 'swiggy',
+  BigBasket: 'bigbasket',
+  JioMart: 'jiomart',
 };
 
 // ── Fetch ETA for all platforms ───────────────────────────────────────────────

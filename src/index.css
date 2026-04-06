@@ -75,10 +75,11 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Utilities */
 .text-gradient {
-  background: var(--accent-gradient);
+  background: linear-gradient(180deg, #0f172a 0%, #1e3a8a 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  filter: drop-shadow(0 2px 0 rgba(255, 255, 255, 0.18));
 }
 
 .glass-panel {

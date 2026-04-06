@@ -8,6 +8,7 @@ const PLATFORM_META = {
   minutes:   { emoji: '🟣', color: '#8b5cf6' },
   dmart:     { emoji: '🟩', color: '#16a34a' },
   amazon_fresh: { emoji: '🟠', color: '#ff9900' },
+  jiomart:   { emoji: '🟦', color: '#005cc2' },
 };
 
 const Stars = ({ rating }) => {

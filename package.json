@@ -12,6 +12,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@paper-design/shaders-react": "^0.0.72",
     "axios": "^1.13.6",
     "concurrently": "^9.2.1",
     "cors": "^2.8.6",

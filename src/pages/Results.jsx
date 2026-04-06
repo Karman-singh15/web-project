@@ -54,6 +54,31 @@ function sortResults(results, mode) {
   return copy;
 }
 
+function getBestDealItem(results = []) {
+  if (!results.length) return null;
+
+  const comparableByUnit = results.filter(
+    (item) => item.unitPrice && item.unitMetric
+  );
+
+  if (comparableByUnit.length > 0) {
+    return [...comparableByUnit].sort((a, b) => {
+      if (a.unitMetric === b.unitMetric) {
+        const unitDiff = a.unitPrice - b.unitPrice;
+        if (Math.abs(unitDiff) > 0.01) return unitDiff;
+      }
+
+      if (a.price !== b.price) return a.price - b.price;
+      return a.deliveryTime - b.deliveryTime;
+    })[0];
+  }
+
+  return [...results].sort((a, b) => {
+    if (a.price !== b.price) return a.price - b.price;
+    return a.deliveryTime - b.deliveryTime;
+  })[0];
+}
+
 const Results = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -112,11 +137,17 @@ const Results = () => {
   };
 
   const sortedResults = resultsJSON && resultsJSON.results ? sortResults(resultsJSON.results, sortMode) : [];
-  
-  const absoluteBestItem = resultsJSON?.results?.length > 0 
-    ? sortResults(resultsJSON.results, 'cheapest')[0] 
+
+  const bestDealItem = resultsJSON?.results?.length > 0
+    ? getBestDealItem(resultsJSON.results)
     : null;
-  const cheapestPrice = absoluteBestItem ? absoluteBestItem.price : null;
+  const cheapestItem = resultsJSON?.results?.length > 0
+    ? [...resultsJSON.results].sort((a, b) => {
+        if (a.price !== b.price) return a.price - b.price;
+        return a.deliveryTime - b.deliveryTime;
+      })[0]
+    : null;
+  const cheapestPrice = cheapestItem ? cheapestItem.price : null;
 
   return (
     <div className="app-container searched animate-fade-in">
@@ -201,7 +232,7 @@ const Results = () => {
                   mrp={item.mrp}
                   deliveryTime={item.deliveryTime}
                   deliverySLA={item.deliverySLA}
-                  isBestDeal={absoluteBestItem && item.id === absoluteBestItem.id}
+                  isBestDeal={bestDealItem && item.id === bestDealItem.id}
                   cheapestPrice={cheapestPrice}
                   dataSource={item.dataSource}
                   productName={item.productName}

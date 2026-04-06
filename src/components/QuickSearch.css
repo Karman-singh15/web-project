@@ -2,12 +2,19 @@
   width: 100%;
   max-width: 700px;
   margin-top: 1.5rem;
+  padding: 1.2rem 1.25rem 1.35rem;
+  border-radius: 28px;
+  background: rgba(255, 249, 214, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 18px 40px rgba(114, 89, 0, 0.1);
 }
 
 .quick-search-label {
   font-size: 0.78rem;
   font-weight: 600;
-  color: var(--text-muted);
+  color: #475569;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   margin-bottom: 0.75rem;
@@ -29,11 +36,12 @@
   border-radius: var(--radius-full);
   cursor: pointer;
   transition: var(--transition-fast);
-  color: var(--text-secondary);
+  color: #334155;
   font-family: var(--font-main);
   font-size: 0.85rem;
   font-weight: 500;
   backdrop-filter: blur(8px);
+  box-shadow: 0 8px 22px rgba(114, 89, 0, 0.08);
 }
 
 .quick-chip:hover {
