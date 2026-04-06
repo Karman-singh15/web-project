@@ -128,7 +128,7 @@ const Results = () => {
             <span className="brand-text">FPC</span>
           </Link>
           <div className="header-search-wrapper">
-             <SearchBar onSearch={handleSearch} initialQuery={rawQuery} />
+             <SearchBar onSearch={handleSearch} initialQuery={rawQuery} isLoading={loading} />
           </div>
         </div>
       </header>

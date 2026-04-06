@@ -78,6 +78,20 @@
     letter-spacing: -0.01em;
 }
 
+.search-btn:disabled {
+    opacity: 0.8;
+    cursor: wait;
+}
+
+.spinner-icon {
+    animation: spin 1s linear infinite;
+    display: block;
+}
+
+@keyframes spin {
+    100% { transform: rotate(360deg); }
+}
+
 .search-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 12px 25px rgba(168, 85, 247, 0.5);
