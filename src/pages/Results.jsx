@@ -25,8 +25,29 @@ function saveHistory(history) {
 
 function sortResults(results, mode) {
   const copy = [...results];
-  if (mode === 'cheapest') return copy.sort((a, b) => a.price - b.price);
-  if (mode === 'fastest') return copy.sort((a, b) => a.deliveryTime - b.deliveryTime);
+  if (mode === 'cheapest') {
+    return copy.sort((a, b) => {
+      // If comparable unit metrics exist, prefer unit price
+      if (a.unitPrice && b.unitPrice && a.unitMetric === b.unitMetric) {
+        const unitDiff = a.unitPrice - b.unitPrice;
+        if (Math.abs(unitDiff) > 0.01) return unitDiff;
+      } else {
+        // Fallback to absolute price
+        if (a.price !== b.price) return a.price - b.price;
+      }
+      // Tie breaker: Fastest
+      return a.deliveryTime - b.deliveryTime;
+    });
+  }
+  if (mode === 'fastest') {
+    return copy.sort((a, b) => {
+      if (a.deliveryTime !== b.deliveryTime) return a.deliveryTime - b.deliveryTime;
+      // Tie breaker: Cheapest
+      const priceA = a.unitPrice && a.unitMetric ? a.unitPrice : a.price;
+      const priceB = b.unitPrice && b.unitMetric ? b.unitPrice : b.price;
+      return priceA - priceB;
+    });
+  }
   if (mode === 'best_value') {
     return copy.sort((a, b) => (a.price * a.deliveryTime) - (b.price * b.deliveryTime));
   }
@@ -91,7 +112,11 @@ const Results = () => {
   };
 
   const sortedResults = resultsJSON && resultsJSON.results ? sortResults(resultsJSON.results, sortMode) : [];
-  const cheapestPrice = sortedResults.length > 0 ? Math.min(...sortedResults.map(r => r.price)) : null;
+  
+  const absoluteBestItem = resultsJSON?.results?.length > 0 
+    ? sortResults(resultsJSON.results, 'cheapest')[0] 
+    : null;
+  const cheapestPrice = absoluteBestItem ? absoluteBestItem.price : null;
 
   return (
     <div className="app-container searched animate-fade-in">
@@ -176,7 +201,7 @@ const Results = () => {
                   mrp={item.mrp}
                   deliveryTime={item.deliveryTime}
                   deliverySLA={item.deliverySLA}
-                  isBestDeal={item.price === cheapestPrice}
+                  isBestDeal={absoluteBestItem && item.id === absoluteBestItem.id}
                   cheapestPrice={cheapestPrice}
                   dataSource={item.dataSource}
                   productName={item.productName}
@@ -187,6 +212,8 @@ const Results = () => {
                   ratingCount={item.ratingCount}
                   deeplink={item.deeplink}
                   available={item.available}
+                  unitPrice={item.unitPrice}
+                  unitMetric={item.unitMetric}
                 />
               ))}
 

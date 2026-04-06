@@ -40,6 +40,27 @@ async function fetchGroupETA() {
   }
 }
 
+function extractUnitInfo(name, quantityStr, price) {
+  const combined = `${quantityStr || ''} ${name || ''}`.toLowerCase();
+  const regex = /(\d+(?:\.\d+)?)\s*(kg|g|ml|l|liter|liters|pc|pcs|piece|pieces|pages|page|gm|gms)\b/i;
+  const match = combined.match(regex);
+  if (!match) return null;
+  
+  const amount = parseFloat(match[1]);
+  let unit = match[2].toLowerCase();
+  
+  if (!amount || amount <= 0 || !price) return null;
+
+  if (['g', 'gm', 'gms'].includes(unit)) return { unitPrice: (price / amount) * 100, unitMetric: '100g' };
+  if (['kg'].includes(unit)) return { unitPrice: price / amount, unitMetric: 'kg' };
+  if (['ml'].includes(unit)) return { unitPrice: (price / amount) * 100, unitMetric: '100ml' };
+  if (['l', 'liter', 'liters'].includes(unit)) return { unitPrice: price / amount, unitMetric: 'L' };
+  if (['pc', 'pcs', 'piece', 'pieces'].includes(unit)) return { unitPrice: price / amount, unitMetric: 'pc' };
+  if (['page', 'pages'].includes(unit)) return { unitPrice: (price / amount) * 100, unitMetric: '100 pgs' };
+
+  return null;
+}
+
 // ── Search endpoint ───────────────────────────────────────────────────────────
 app.get('/api/search', async (req, res) => {
   const query = req.query.query;
@@ -70,11 +91,13 @@ app.get('/api/search', async (req, res) => {
     const top = products[0]; // best match
     const etaString = top?.platform?.sla || etaMap[platformName] || '—';
     const deliveryMins = parseInt(etaString) || 60;
+    const finalPrice = top.offer_price ?? top.mrp ?? 0;
+    const unitInfo = extractUnitInfo(top.name, top.quantity, finalPrice);
 
     results.push({
       id: PLATFORM_ID_MAP[platformName] || platformName.toLowerCase(),
       platform: platformName === 'Swiggy' ? 'Swiggy Instamart' : platformName,
-      price: top.offer_price ?? top.mrp ?? 0,
+      price: finalPrice,
       mrp: top.mrp ?? null,
       deliveryTime: deliveryMins,
       deliverySLA: etaString,
@@ -83,6 +106,8 @@ app.get('/api/search', async (req, res) => {
       productName: top.name,
       brand: top.brand || null,
       quantity: top.quantity || null,
+      unitPrice: unitInfo ? unitInfo.unitPrice : null,
+      unitMetric: unitInfo ? unitInfo.unitMetric : null,
       image: top.images?.[0] || null,
       rating: top.rating || null,
       ratingCount: top.rating_count || null,

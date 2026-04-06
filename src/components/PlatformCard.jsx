@@ -25,6 +25,7 @@ const PlatformCard = ({
   platform, platformId, price, mrp, deliveryTime, deliverySLA,
   isBestDeal, cheapestPrice, dataSource,
   productName, brand, quantity, image, rating, ratingCount, deeplink, available,
+  unitPrice, unitMetric
 }) => {
   const meta = PLATFORM_META[platformId] || { emoji: '🛒', color: '#a1a1aa' };
   const savings = cheapestPrice && !isBestDeal ? price - cheapestPrice : 0;
@@ -81,6 +82,11 @@ const PlatformCard = ({
       <div className="price-section">
         <div className="price-details">
           <span className="current-price">₹{Number(price || 0).toFixed(0)}</span>
+          {unitPrice && unitMetric && (
+            <span className="unit-price">
+              ₹{Number(unitPrice).toFixed(1)} / {unitMetric}
+            </span>
+          )}
           {mrp && Number(mrp) > Number(price) && <span className="mrp-price">₹{mrp}</span>}
           {discount && <span className="discount-badge">{discount}% off</span>}
           {savings > 0 && <span className="savings-badge">+₹{Number(savings || 0).toFixed(0)} more</span>}

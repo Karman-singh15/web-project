@@ -22,7 +22,15 @@
 .search-container.focused .search-box {
     border-color: rgba(168, 85, 247, 0.5);
     box-shadow: 0 0 0 4px rgba(168, 85, 247, 0.15), var(--shadow-lg);
-    background: rgba(10, 10, 12, 0.85);
+    background: rgba(10, 10, 12, 0.85); /* <-- Dark background on focus */
+}
+
+.search-container.focused .search-input {
+    color: #ffffff;
+}
+
+.search-container.focused .search-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
 }
 
 .search-icon {
@@ -84,6 +92,9 @@
     padding: 1.75rem;
     z-index: 10;
     border-radius: var(--radius-xl);
+    background: #ffffff !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
+    border: 1px solid var(--border-glass-strong);
 }
 
 .suggestions-title {
